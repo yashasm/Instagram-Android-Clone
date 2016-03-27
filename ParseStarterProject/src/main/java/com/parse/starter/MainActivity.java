@@ -9,119 +9,115 @@
 package com.parse.starter;
 import com.parse.FindCallback;
 import com.parse.GetCallback;
+import com.parse.LogInCallback;
 import com.parse.ParseObject;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.parse.ParseAnalytics;
 import com.parse.ParseQuery;
 
 import com.parse.ParseException;
+import com.parse.ParseUser;
+import com.parse.SignUpCallback;
 
 import java.util.List;
 //import java.text.ParseException;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener{
 
-  @Override
-  protected void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_main);
+    EditText usernameField;
+    EditText passwordField;
+    TextView changeSignUpModeTextView;
+    //Boolean signModeActive;
+    Button signUpButton;
+    Button logInButton;
+    RelativeLayout relativeLayout;
+    ImageView logo;
 
-    ParseAnalytics.trackAppOpenedInBackground(getIntent());
+    public void showList(){
+        Intent i = new Intent(getApplicationContext(),NewUser.class);
+        startActivity(i);
+    }
 
-/*
-      ParseObject parseObject = new ParseObject("NewScore");
-      parseObject.put("username", "poo2");
-      parseObject.put("score", 100);
-      parseObject.put("username", "poo3");
-      parseObject.put("score", 100);
-      parseObject.put("username", "poo4");
-      parseObject.put("score", 100);
-      parseObject.put("username", "poo5");
-      parseObject.put("score", 100);
-
-      try {
-          Log.i("whatThe", "trying");
-          parseObject.saveInBackground();
-          Log.i("whatThe", "sucess");
-      } catch (Exception e) {
-          Log.i("whatThe", "Exception");
-          e.printStackTrace();
-      }
-
-*/
-/*
-      ParseQuery<ParseObject> query = ParseQuery.getQuery("NewScore");
-      query.findInBackground(new FindCallback<ParseObject>() {
-          @Override
-          public void done(List<ParseObject> objects, ParseException e) {
-              if(e == null){
-                  Log.i("findList","size : "+ objects.size());
-                  for(ParseObject object : objects){
-                      Log.i("findList", (String) object.get("username"));
-                      //object.put("score",200);
-                      //object.saveInBackground();
-                  }
-              }
-              else{
-                  Log.i("findList","exception");
-                  e.printStackTrace();
-              }
-          }
-      });
-*/
-
-     ParseQuery<ParseObject> query = ParseQuery.getQuery("NewScore");
-     //query.whereEqualTo("username","poo");
-
-      query.findInBackground(new FindCallback<ParseObject>() {
-          @Override
-          public void done(List<ParseObject> objects, ParseException e) {
-            if(e== null) {
-                for (ParseObject object : objects) {
-                    //object.put("score", 300);
-                    //object.saveInBackground();
-                    Log.i("whatThe", (String) object.get("username"));
-                    Log.i("whatThe", String.valueOf(object.get("score")));
+    public void logInMode(View v) {
+        Log.i("AppInfo", "Inside click");
+        ParseUser.logInInBackground(String.valueOf(usernameField.getText()), String.valueOf(passwordField.getText()), new LogInCallback() {
+            @Override
+            public void done(ParseUser user, ParseException e) {
+                if (user != null) {
+                    Toast.makeText(getApplicationContext(), "Successfully logged in", Toast.LENGTH_LONG).show();
+                    showList();
+                } else  {
+                    Toast.makeText(getApplicationContext(), "Failed to log in", Toast.LENGTH_LONG).show();
                 }
             }
-          }
-      });
-/*
-      ParseQuery<ParseObject> query =  ParseQuery.getQuery("NewScore");
-      query.getInBackground("3Lggm86NZS", new GetCallback<ParseObject>() {
+        });
+    }
+
+  public void signUpOrLogin(View view) {
+      Log.i("AppInfo", String.valueOf(usernameField.getText()));
+      Log.i("AppInfo", String.valueOf(passwordField.getText()));
+
+
+          ParseUser user = new ParseUser();
+      user.setUsername(String.valueOf(usernameField.getText()));
+      user.setPassword(String.valueOf(passwordField.getText()));
+
+      user.signUpInBackground(new SignUpCallback() {
           @Override
-          public void done(ParseObject object, com.parse.ParseException e) {
+          public void done(ParseException e) {
+
               if (e == null) {
-                  object.put("username", "yashasnew");
 
-                  try {
-                      Log.i("whatThe", "trying");
-                      object.saveInBackground();
-                      Log.i("whatThe", "sucess");
-                  } catch (Exception t) {
-                      Log.i("whatThe", "Exception");
-                      t.printStackTrace();
-                  }
-              }
-              else{
-                  Log.i("whatThe", "Exception2");
-                  e.printStackTrace();
-
+                  Toast.makeText(getApplicationContext(), "Signed up successfully", Toast.LENGTH_LONG).show();
+                  showList();
+              } else {
+                  Toast.makeText(getApplicationContext(), e.getMessage().substring(e.getMessage().indexOf(" ")), Toast.LENGTH_LONG).show();
               }
 
           }
       });
 
+  }
+  @Override
+  protected void onCreate(Bundle savedInstanceState) {
+      super.onCreate(savedInstanceState);
+      setContentView(R.layout.activity_main);
+    //setTitle("Instagram");
+    ParseAnalytics.trackAppOpenedInBackground(getIntent());
+      usernameField = (EditText) findViewById(R.id.username);
+      passwordField = (EditText) findViewById(R.id.password);
+      //changeSignUpModeTextView = (TextView) findViewById(R.id.changeSignUpMode);
+      signUpButton = (Button) findViewById(R.id.signUpButton);
+      logInButton = (Button) findViewById(R.id.logIn);
+      relativeLayout = (RelativeLayout) findViewById(R.id.relativeLayout);
+      logo = (ImageView) findViewById(R.id.insta);
 
-*/
+      if(ParseUser.getCurrentUser() != null){
+          showList();
+      }
+      //passwordField.setOnKeyListener(this);
+      //signModeActive = true;
+      //changeSignUpModeTextView.setOnClickListener(this);
+      relativeLayout.setOnClickListener(this);
+      logo.setOnClickListener(this);
 
   }
 
@@ -146,4 +142,11 @@ public class MainActivity extends AppCompatActivity {
 
     return super.onOptionsItemSelected(item);
   }
+
+
+    @Override
+    public void onClick(View v) {
+        InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(),0);
+    }
 }
